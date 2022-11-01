@@ -24,7 +24,7 @@ fun Route.signUp(
         val request = call.receive<AuthRequest>()
         val areFieldsBlank = request.username.isBlank() || request.password.isBlank()
         //effettuare altri controlli e richiedere molti piú dati per la registrazione
-        if(areFieldsBlank) {
+        if (areFieldsBlank) {
             call.respondText("Credentials not entered correctly", status = HttpStatusCode.BadRequest)
         }
 
@@ -37,10 +37,10 @@ fun Route.signUp(
         )
 
         val wasAcknowledged = subDataSource.insertSubscriber(sub)
-        if(!wasAcknowledged) {
-            call.respondText("Couldn't insert this sub",status =HttpStatusCode.Conflict)
+        if (!wasAcknowledged) {
+            call.respondText("Couldn't insert this sub", status = HttpStatusCode.Conflict)
         }
-            call.respondText("Subscriber inserted correctly", status = HttpStatusCode.OK)
+        call.respondText("Subscriber inserted correctly", status = HttpStatusCode.OK)
 
     }
 
@@ -60,7 +60,7 @@ fun Route.signIn(
             call.respondText("Credentials not entered correctly", status = HttpStatusCode.BadRequest)
         }
         val sub = subDataSource.getSubscriberByUsername(request.username)
-        if(sub == null) {
+        if (sub == null) {
             call.respondText("One of the fields was empty", status = HttpStatusCode.Conflict)
         }
 
@@ -71,14 +71,14 @@ fun Route.signIn(
                 salt = sub.salt
             )
         )
-        if(!isValidPassword) {
+        if (!isValidPassword) {
             call.respondText("Incorrect username or password", status = HttpStatusCode.Conflict)
         }
         val token = tokenService.generate(
             config = tokenConfig,
             TokenClaim(
                 name = "subId",
-                value= sub.id.toString()
+                value = sub.id.toString()
             )
         )
         call.respond(
