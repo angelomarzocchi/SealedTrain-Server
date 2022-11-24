@@ -16,4 +16,5 @@ class MongoSubscriberDataSource(
     override suspend fun insertSubscriber(sub: Subscriber): Boolean {
         return users.insertOne(sub).wasAcknowledged()
     }
+
 }

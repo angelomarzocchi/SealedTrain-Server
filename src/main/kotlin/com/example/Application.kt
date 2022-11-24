@@ -1,14 +1,16 @@
 package com.example
 
 import com.example.data.models.MongoSubscriberDataSource
-import com.example.plugins.*
+import com.example.plugins.configureMonitoring
+import com.example.plugins.configureRouting
+import com.example.plugins.configureSecurity
+import com.example.plugins.configureSerialization
 import com.example.security.hashing.SHA256HashingService
 import com.example.security.token.JwtTokenService
 import com.example.security.token.TokenConfig
 import io.ktor.server.application.*
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
-import java.util.*
 
 fun main(args: Array<String>): Unit =
     io.ktor.server.netty.EngineMain.main(args)

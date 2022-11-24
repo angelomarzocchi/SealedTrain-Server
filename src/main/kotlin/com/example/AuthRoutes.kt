@@ -3,6 +3,7 @@ package com.example
 import com.example.data.models.Subscriber
 import com.example.data.models.SubscriberDataSource
 import com.example.data.models.Ticket
+import com.example.data.models.TicketType
 import com.example.data.requests.AuthRequest
 import com.example.security.hashing.HashingService
 import com.example.security.hashing.SaltedHash
@@ -15,6 +16,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import java.time.Instant
+import java.util.*
 
 fun Route.signUp(
     hashingService: HashingService,
@@ -33,8 +36,16 @@ fun Route.signUp(
             username = request.username,
             password = saltedHash.hash,
             salt = saltedHash.salt,
-            tickets = listOf<Ticket>()
+            tickets = listOf<Ticket>(
+                Ticket(Date.from(Instant.now()),
+                TicketType.FULL_YEAR,
+                    startingPoint = "Giugliano",
+                    endingPoint = "Napoli"
+            )
         )
+        )
+
+
 
         val wasAcknowledged = subDataSource.insertSubscriber(sub)
         if (!wasAcknowledged) {
@@ -88,11 +99,17 @@ fun Route.signIn(
     }
 }
 
+
+
+
+
 fun Route.authenticate() {
     authenticate {//non dobbiamo fare nulla perché il controllo é gia effettuato nel file plugins/Security.kt
         get("/authenticate") {
             call.respond(HttpStatusCode.OK)
         }
     }
+
+
 }
 

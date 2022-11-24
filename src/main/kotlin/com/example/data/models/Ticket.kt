@@ -7,8 +7,8 @@ import java.util.Date
 data class Ticket(
     val startValidation: Date,
     val type: TicketType,
-    val startingpoint: String,
-    val endingpoint: String,
-    val qrcode: String,
+    val startingPoint: String,
+    val endingPoint: String,
+    val qrcode: String = type.toString()+ startingPoint + endingPoint + startValidation.toString(),
     @BsonId val id: ObjectId = ObjectId()
 )
