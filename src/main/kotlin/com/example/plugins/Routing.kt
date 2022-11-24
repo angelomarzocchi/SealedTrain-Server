@@ -21,5 +21,6 @@ fun Application.configureRouting(
         signUp(hashingService, subscriberDataSource)
         signIn(subscriberDataSource, hashingService, tokenService, tokenConfig)
         authenticate()
+
     }
 }

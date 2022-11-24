@@ -9,6 +9,6 @@ data class Ticket(
     val type: TicketType,
     val startingPoint: String,
     val endingPoint: String,
-    val qrcode: String = type.toString()+ startingPoint + endingPoint + startValidation.toString(),
+    val qrcode: String = type.toString() + "_" + startingPoint + "_" + "endingPoint" + "_" + startValidation.toString(),
     @BsonId val id: ObjectId = ObjectId()
 )

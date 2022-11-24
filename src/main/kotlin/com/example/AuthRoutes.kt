@@ -37,15 +37,14 @@ fun Route.signUp(
             password = saltedHash.hash,
             salt = saltedHash.salt,
             tickets = listOf<Ticket>(
-                Ticket(Date.from(Instant.now()),
-                TicketType.FULL_YEAR,
+                Ticket(
+                    Date.from(Instant.now()),
+                    TicketType.FULL_YEAR,
                     startingPoint = "Giugliano",
                     endingPoint = "Napoli"
+                )
             )
         )
-        )
-
-
 
         val wasAcknowledged = subDataSource.insertSubscriber(sub)
         if (!wasAcknowledged) {
@@ -99,17 +98,11 @@ fun Route.signIn(
     }
 }
 
-
-
-
-
 fun Route.authenticate() {
     authenticate {//non dobbiamo fare nulla perché il controllo é gia effettuato nel file plugins/Security.kt
         get("/authenticate") {
             call.respond(HttpStatusCode.OK)
         }
     }
-
-
 }
 
