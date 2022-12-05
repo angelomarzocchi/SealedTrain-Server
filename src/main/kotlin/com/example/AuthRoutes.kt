@@ -1,10 +1,12 @@
 package com.example
 
+
 import com.example.data.models.Subscriber
 import com.example.data.models.SubscriberDataSource
 import com.example.data.models.Ticket
 import com.example.data.models.TicketType
 import com.example.data.requests.AuthRequest
+import com.example.data.responses.AuthResponse
 import com.example.security.hashing.HashingService
 import com.example.security.hashing.SaltedHash
 import com.example.security.token.TokenClaim
@@ -13,11 +15,13 @@ import com.example.security.token.TokenService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import java.time.Instant
-import java.util.*
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 
 fun Route.signUp(
     hashingService: HashingService,
@@ -38,7 +42,7 @@ fun Route.signUp(
             salt = saltedHash.salt,
             tickets = listOf<Ticket>(
                 Ticket(
-                    Date.from(Instant.now()),
+                    LocalDateTime(LocalDate(2022, 11, 29), LocalTime(12, 50)),
                     TicketType.FULL_YEAR,
                     startingPoint = "Giugliano",
                     endingPoint = "Napoli"
@@ -93,16 +97,39 @@ fun Route.signIn(
         )
         call.respond(
             status = HttpStatusCode.OK,
-            message = token
+            message = AuthResponse(token)
         )
     }
 }
 
 fun Route.authenticate() {
     authenticate {//non dobbiamo fare nulla perché il controllo é gia effettuato nel file plugins/Security.kt
-        get("/authenticate") {
+        get(" authenticate") {
             call.respond(HttpStatusCode.OK)
+        }
+
+    }
+}
+
+fun Route.getTickets(subDataSource: SubscriberDataSource) {
+    authenticate {
+        get("tickets") {
+
+            val principal = call.principal<JWTPrincipal>()
+            val userId = principal?.getClaim("subId", String::class)
+            if (userId == null) {
+                call.respond(HttpStatusCode.Conflict, "Couldnt find a user")
+            }
+            val tickets = subDataSource.getSubscriberBySubId(userId!!)?.tickets
+            if (tickets == null) {
+                call.respond(HttpStatusCode.Conflict, "No tickets found")
+            }
+            call.respond(HttpStatusCode.OK, message = tickets!!)
+            //call.respond(HttpStatusCode.OK, "your username is $userId")
+
         }
     }
 }
+
+
 

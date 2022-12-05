@@ -2,6 +2,7 @@ package com.example.plugins
 
 import com.example.authenticate
 import com.example.data.models.SubscriberDataSource
+import com.example.getTickets
 import com.example.security.hashing.HashingService
 import com.example.security.token.TokenConfig
 import com.example.security.token.TokenService
@@ -21,6 +22,7 @@ fun Application.configureRouting(
         signUp(hashingService, subscriberDataSource)
         signIn(subscriberDataSource, hashingService, tokenService, tokenConfig)
         authenticate()
+        getTickets(subscriberDataSource)
 
     }
 }
