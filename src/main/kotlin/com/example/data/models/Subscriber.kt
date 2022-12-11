@@ -7,6 +7,8 @@ data class Subscriber(
     val username: String,
     val password: String,
     val salt: String,
-    val tickets: List<Ticket>,
+    val tickets: MutableList<Ticket>,
     @BsonId val id: ObjectId = ObjectId()
-)
+){
+    lateinit var iv: ByteArray
+}

@@ -7,5 +7,7 @@ interface SubscriberDataSource {
 
     suspend fun getSubscriberBySubId(subId: String): Subscriber?
 
+    suspend fun getSubscriberByQrCode(qrcode: String): Subscriber?
+
 
 }

@@ -6,7 +6,9 @@ import com.example.data.models.SubscriberDataSource
 import com.example.data.models.Ticket
 import com.example.data.models.TicketType
 import com.example.data.requests.AuthRequest
+import com.example.data.requests.TicketQrCode
 import com.example.data.responses.AuthResponse
+import com.example.security.encryption.CryptoService
 import com.example.security.hashing.HashingService
 import com.example.security.hashing.SaltedHash
 import com.example.security.token.TokenClaim
@@ -40,15 +42,21 @@ fun Route.signUp(
             username = request.username,
             password = saltedHash.hash,
             salt = saltedHash.salt,
-            tickets = listOf<Ticket>(
-                Ticket(
-                    LocalDateTime(LocalDate(2022, 11, 29), LocalTime(12, 50)),
-                    TicketType.FULL_YEAR,
-                    startingPoint = "Giugliano",
-                    endingPoint = "Napoli"
-                )
+            tickets = mutableListOf<Ticket>()
+        )
+
+        sub.tickets.add(
+            Ticket(
+                LocalDateTime(LocalDate(2022, 11, 29), LocalTime(12, 50)),
+                TicketType.FULL_YEAR,
+                startingPoint = "Giugliano",
+                endingPoint = "Napoli"
             )
         )
+        val clearQrCode =sub.tickets[0].qrcode
+        val cryptoService = CryptoService()
+        sub.tickets[0].qrcode = cryptoService.encrypt(clearQrCode,sub.id.toString(),sub.password)
+        sub.iv = cryptoService.iv
 
         val wasAcknowledged = subDataSource.insertSubscriber(sub)
         if (!wasAcknowledged) {
@@ -130,6 +138,46 @@ fun Route.getTickets(subDataSource: SubscriberDataSource) {
         }
     }
 }
+
+fun Route.validateTicket(subDataSource: SubscriberDataSource) {
+post("/validateTicket") {
+
+    val request = call.receive<TicketQrCode>()
+    val areFieldsBlank = request.qrCode.isBlank()
+    if(areFieldsBlank) {
+        call.respondText("QrCode is empty", status = HttpStatusCode.BadRequest)
+    }
+    val sub = subDataSource.getSubscriberByQrCode(request.qrCode)
+    if (sub == null) {
+        call.respondText("Probabilmente il filtro é sbagliato", status = HttpStatusCode.Conflict)
+    }
+
+    /*
+    val cryptoService = CryptoService()
+    cryptoService.iv = sub!!.iv
+    val plainTextQrCode = cryptoService.decrypt(request.qrCode,sub.id.toString(),sub.password)
+     */
+
+    val ticket = sub!!.tickets.find {  it.qrcode == request.qrCode }
+    if(ticket != null){
+        if(ticket.checkValidity()) {
+            call.respond(HttpStatusCode.OK)
+        }else {
+            call.respondText("Il ticket non é valido",status=HttpStatusCode.Conflict)
+        }
+    } else {
+        call.respondText("Non ho trovato il ticket",status=HttpStatusCode.Conflict)
+    }
+
+
+}
+}
+
+
+
+
+
+
 
 
 
