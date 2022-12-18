@@ -46,6 +46,7 @@ class CryptoService {
 
         keyStore.setEntry(id,secretKeyEntry, KeyStore.PasswordProtection(password.toCharArray()))
 
+
         val fileOutputStream = FileOutputStream(path)
 
 
@@ -65,6 +66,7 @@ class CryptoService {
 
         return Base64.getEncoder().encodeToString(cipherText)
     }
+
 
 
     fun decrypt(str: String,id: String, password: String): String {
@@ -93,6 +95,11 @@ class CryptoService {
         return String(cipherTest)
 
     }
+
+
+
+
+
 
 
 

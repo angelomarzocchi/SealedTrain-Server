@@ -21,5 +21,6 @@ fun Application.configureRouting(
         authenticate()
         getTickets(subscriberDataSource)
         validateTicket(subscriberDataSource)
+
     }
 }

@@ -31,6 +31,8 @@ data class Ticket(
     var qrcode: String =   type.toString() + "_" + startingPoint + "_" + "endingPoint" + "_" + startValidation.toString(),
     @BsonId @Serializable(with = ObjectIdAsStringSerializer::class) val id: ObjectId = ObjectId()
 ) {
+    lateinit var iv: ByteArray
+
     fun checkValidity(): Boolean {
         var isValid: Boolean = false
         val today = LocalDateTime(YearMonth.now().year,YearMonth.now().month.value,MonthDay.now().dayOfMonth,0,0)

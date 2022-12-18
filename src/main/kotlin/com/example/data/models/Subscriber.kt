@@ -10,5 +10,5 @@ data class Subscriber(
     val tickets: MutableList<Ticket>,
     @BsonId val id: ObjectId = ObjectId()
 ){
-    lateinit var iv: ByteArray
+
 }

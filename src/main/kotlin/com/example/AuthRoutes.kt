@@ -53,10 +53,24 @@ fun Route.signUp(
                 endingPoint = "Napoli"
             )
         )
-        val clearQrCode =sub.tickets[0].qrcode
-        val cryptoService = CryptoService()
-        sub.tickets[0].qrcode = cryptoService.encrypt(clearQrCode,sub.id.toString(),sub.password)
-        sub.iv = cryptoService.iv
+        var clearQrCode =sub.tickets[0].qrcode
+        var cryptoService = CryptoService()
+        sub.tickets[0].qrcode = cryptoService.encrypt(clearQrCode,sub.tickets[0].id.toString(),sub.password)
+        sub.tickets[0].iv = cryptoService.iv
+
+
+        sub.tickets.add(
+            Ticket(
+                LocalDateTime(LocalDate(2022, 12, 16), LocalTime(9, 10)),
+                TicketType.ONE_DAY,
+                startingPoint = "Chiaiano",
+                endingPoint = "Napoli"
+            )
+        )
+         clearQrCode =sub.tickets[1].qrcode
+         cryptoService = CryptoService()
+        sub.tickets[1].qrcode = cryptoService.encrypt(clearQrCode,sub.tickets[1].id.toString(),sub.password)
+        sub.tickets[1].iv = cryptoService.iv
 
         val wasAcknowledged = subDataSource.insertSubscriber(sub)
         if (!wasAcknowledged) {
@@ -119,6 +133,8 @@ fun Route.authenticate() {
     }
 }
 
+
+
 fun Route.getTickets(subDataSource: SubscriberDataSource) {
     authenticate {
         get("tickets") {
@@ -139,6 +155,8 @@ fun Route.getTickets(subDataSource: SubscriberDataSource) {
     }
 }
 
+
+
 fun Route.validateTicket(subDataSource: SubscriberDataSource) {
 post("/validateTicket") {
 
@@ -149,7 +167,7 @@ post("/validateTicket") {
     }
     val sub = subDataSource.getSubscriberByQrCode(request.qrCode)
     if (sub == null) {
-        call.respondText("Probabilmente il filtro é sbagliato", status = HttpStatusCode.Conflict)
+        call.respondText("Ticket is not valid", status = HttpStatusCode.Conflict)
     }
 
     /*
@@ -163,10 +181,10 @@ post("/validateTicket") {
         if(ticket.checkValidity()) {
             call.respond(HttpStatusCode.OK)
         }else {
-            call.respondText("Il ticket non é valido",status=HttpStatusCode.Conflict)
+            call.respondText("Ticket is not valid",status=HttpStatusCode.Conflict)
         }
     } else {
-        call.respondText("Non ho trovato il ticket",status=HttpStatusCode.Conflict)
+        call.respondText("Ticket is not valid",status=HttpStatusCode.Conflict)
     }
 
 
