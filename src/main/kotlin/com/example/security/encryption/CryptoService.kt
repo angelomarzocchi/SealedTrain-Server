@@ -1,16 +1,10 @@
 package com.example.security.encryption
 
-import com.example.data.models.*
-
-import com.example.security.hashing.SHA256HashingService
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.LocalTime
-
+import org.apache.commons.codec.binary.Hex
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.KeyStore
-import java.util.*
+import javax.crypto.BadPaddingException
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -18,13 +12,13 @@ import javax.crypto.spec.IvParameterSpec
 
 class CryptoService {
 
-    lateinit var key: SecretKey
+    private lateinit var key: SecretKey
     lateinit var iv: ByteArray
 
-    val path: String = "C:/Users/angel/IdeaProjects/authAPIs/src/main/resources/sealedtrainKeystore"
-    val passwd: CharArray = "castiglione".toCharArray()
-    val fileInputStream = FileInputStream(path)
-    val keyStore = KeyStore.getInstance("JKS")
+    private val path: String = "C:/Users/angel/IdeaProjects/authAPIs/src/main/resources/sealedtrainKeystore"
+    private val passwd: CharArray = "castiglione".toCharArray()
+    private val fileInputStream = FileInputStream(path)
+    private val keyStore: KeyStore = KeyStore.getInstance("JKS")
 
     init {
         keyStore.load(fileInputStream,passwd)
@@ -62,9 +56,8 @@ class CryptoService {
 
         keyStore.store(fileOutputStream,passwd)
 
-
-
-        return Base64.getEncoder().encodeToString(cipherText)
+        return Hex.encodeHexString(cipherText)
+      //  return Hex.getEncoder().encodeToString(cipherText)
     }
 
 
@@ -91,8 +84,15 @@ class CryptoService {
 
         cipher.init(Cipher.DECRYPT_MODE, mykey, ivSpec)
 
-        val cipherTest = cipher.doFinal(Base64.getDecoder().decode(str))
-        return String(cipherTest)
+        //val cipherText = cipher.doFinal(Base64.getDecoder().decode(str))
+        var cipherText: ByteArray
+        try {
+            cipherText = cipher.doFinal(Hex.decodeHex(str))
+
+        } catch(e: BadPaddingException) {
+            cipherText = ByteArray(1)
+        }
+        return String(cipherText)
 
     }
 
@@ -106,43 +106,3 @@ class CryptoService {
 
 }
 
-fun main() {
-    val cryptoService: CryptoService = CryptoService()
-    val password = "forzanapoli"
-    val saltedHash = SHA256HashingService().generateSaltedHash(password)
-    val user = "angelo"
-    val qrcode = "FULL_YEARGiuglianoNapoliWed Nov 23 14:56:33 CET 2022"
-
-/*
-    val encryptedQrCode = cryptoService.encrypt(qrcode,user,password)
-    println(encryptedQrCode)
-    for(i in cryptoService.iv)
-        print("$i ")
-
- */
-
-
-
-
-
-
-
-
-
-    val encryptedQrCode = "of/mFIVpmhjWiNeWnHLwTWfzUbaAGtY72HE0u9F9GO1N+MmyrZqHFR1nZXwkMKnel8Y8uzVO8sAeA9f1GFRxJQ=="
-    println(encryptedQrCode)
-
-    val iv = byteArrayOf(113, -43, 12, -90, 24, 93, -16, 1 ,-37, -80, -45, -57, 13 ,-113, 65, 81)
-
-    cryptoService.iv = iv
-
-
-
-
-
-    val decryptedQrcode = cryptoService.decrypt(encryptedQrCode,user,password)
-    println()
-    println(decryptedQrcode)
-
-
-}

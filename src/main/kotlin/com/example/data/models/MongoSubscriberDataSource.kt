@@ -1,21 +1,13 @@
 package com.example.data.models
 
 
-import com.mongodb.client.model.Filters.eq
-import com.mongodb.reactivestreams.client.MongoCollection
-import kotlinx.coroutines.reactive.asFlow
+import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Updates
 import org.apache.commons.codec.binary.Hex
-import org.bson.Document
 import org.bson.conversions.Bson
 import org.bson.types.ObjectId
-import org.litote.kmongo.EMPTY_BSON
-import org.litote.kmongo.MongoOperator
-import org.litote.kmongo.coroutine.CoroutineCollection
+import org.litote.kmongo.*
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import org.litote.kmongo.coroutine.CoroutineFindPublisher
-import org.litote.kmongo.div
-import org.litote.kmongo.eq
-import org.litote.kmongo.reactivestreams.withKMongo
 
 class MongoSubscriberDataSource(
     db: CoroutineDatabase
@@ -37,12 +29,29 @@ class MongoSubscriberDataSource(
     }
 
     override suspend fun getSubscriberByQrCode(qrcode: String): Subscriber? {
-        val str = "\"$qrcode\""
+
         return users.findOne(Subscriber::tickets / Ticket::qrcode eq qrcode)
     }
 
     override suspend fun getAllSubscribers(): List<Subscriber> {
         return users.find().toList()
+    }
+
+    override suspend fun updateTicket(iv:ByteArray, qrcode:String) {
+        val filter: Bson = Filters.elemMatch("tickets", Filters.eq("qrcode", qrcode))
+
+// crea l'update che specifica il nuovo valore del campo iv
+        val updateIv: Bson = Updates.set("tickets.$.iv", iv)
+        //val updateQr: Bson = Updates.set("tickets.$.qrcode",encryptedQrcode)
+
+// esegui l'update sul database
+        users.updateOne(filter, updateIv)
+       // users.updateOne(filter,updateQr)
+    }
+
+    override suspend fun getSubscriberByTicketId(ticketId: String): Subscriber? {
+        val hexId = Hex.decodeHex(ticketId)
+        return users.findOne(Subscriber::tickets / Ticket::id eq ObjectId(hexId))
     }
 
 

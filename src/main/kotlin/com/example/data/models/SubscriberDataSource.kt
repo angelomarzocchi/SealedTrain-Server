@@ -1,8 +1,6 @@
 package com.example.data.models
 
-import com.mongodb.reactivestreams.client.MongoCollection
-import org.litote.kmongo.coroutine.CoroutineCollection
-import org.litote.kmongo.coroutine.CoroutineFindPublisher
+
 
 interface SubscriberDataSource {
 
@@ -15,6 +13,10 @@ interface SubscriberDataSource {
     suspend fun getSubscriberByQrCode(qrcode: String): Subscriber?
 
     suspend fun getAllSubscribers(): List<Subscriber>
+
+    suspend fun updateTicket(iv:ByteArray,qrcode:String)
+
+    suspend fun getSubscriberByTicketId(ticketId: String): Subscriber?
 
 
 
