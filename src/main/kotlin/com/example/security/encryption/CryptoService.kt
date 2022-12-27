@@ -16,7 +16,7 @@ class CryptoService {
     lateinit var iv: ByteArray
 
     private val path: String = "C:/Users/angel/IdeaProjects/authAPIs/src/main/resources/sealedtrainKeystore"
-    private val passwd: CharArray = "castiglione".toCharArray()
+    private val passwd: CharArray = System.getenv("KEYST_PW").toCharArray()
     private val fileInputStream = FileInputStream(path)
     private val keyStore: KeyStore = KeyStore.getInstance("JKS")
 
