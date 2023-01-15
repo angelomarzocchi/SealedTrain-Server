@@ -11,3 +11,5 @@ Sealed Train has a Client-Server architecture:
     - Every time the client makes the request for tickets, they are encrypted with **AES256** algorithm before being sent.
         - The keys are stored on a local **KeyStore**, protected by a password. Each key is protected with the user’s password . Each ticket is encrypted with a different key.
     - When the server receives a request to validate a ticket, it identifies the ticket id and uses the KeyStore to get the Key and decrypt the QR Code. Subsequently, the server looks for the decrypted QrCode inside the DB and , if found, checks its validity.
+    
+    Full article : https://angelomarzocchi.notion.site/QR-Codes-Encryption-to-protect-confidentiality-and-ensure-non-replicability-998258a8823d4be9a7d7dbd4de3c13e9
