@@ -45,7 +45,7 @@ fun Route.signUp(
             username = request.username,
             password = saltedHash.hash,
             salt = saltedHash.salt,
-            tickets = mutableListOf<Ticket>()
+            tickets = mutableListOf()
         )
 
         sub.tickets.add(
@@ -56,7 +56,7 @@ fun Route.signUp(
                 endingPoint = "Napoli"
             )
         )
-        val clearQrCode =sub.tickets[0].qrcode
+        val clearQrCode = sub.tickets[0].qrcode
 
         /*
         sub.tickets[0].qrcode = cryptoService.encrypt(clearQrCode,sub.tickets[0].id.toString(),sub.password)
@@ -64,8 +64,6 @@ fun Route.signUp(
          */
         sub.tickets[0].qrcode = SHA256HashingService().generateSaltedHash(clearQrCode).hash
         sub.tickets[0].iv = ByteArray(32)
-
-
 
 
         val wasAcknowledged = subDataSource.insertSubscriber(sub)
@@ -130,7 +128,6 @@ fun Route.authenticate() {
 }
 
 
-
 fun Route.getTickets(subDataSource: SubscriberDataSource) {
     authenticate {
         get("tickets") {
@@ -149,20 +146,22 @@ fun Route.getTickets(subDataSource: SubscriberDataSource) {
             val ticketsResponse = mutableListOf<TicketResponse>()
             //encrypt
             val cryptoService = CryptoService()
-            var encryptedQRcode:String
-            for(ticket in tickets!!) {
-                encryptedQRcode = cryptoService.encrypt(ticket.qrcode,ticket.id.toString(),user!!.password)
-               // ticket.qrcode = encryptedQRcode
+            var encryptedQRcode: String
+            for (ticket in tickets!!) {
+                encryptedQRcode = cryptoService.encrypt(ticket.qrcode, ticket.id.toString(), user!!.password)
+                // ticket.qrcode = encryptedQRcode
                 ticket.iv = cryptoService.iv
-                subDataSource.updateTicket(ticket.iv,ticket.qrcode)
-                ticketsResponse.add(TicketResponse(
-                    startValidation = ticket.startValidation,
-                    type = ticket.type,
-                    startingPoint = ticket.startingPoint,
-                    endingPoint = ticket.endingPoint,
-                    id = ticket.id.toString(),
-                    qrcode = "${ticket.id}_$encryptedQRcode"
-                ))
+                subDataSource.updateTicket(ticket.iv, ticket.qrcode)
+                ticketsResponse.add(
+                    TicketResponse(
+                        startValidation = ticket.startValidation,
+                        type = ticket.type,
+                        startingPoint = ticket.startingPoint,
+                        endingPoint = ticket.endingPoint,
+                        id = ticket.id.toString(),
+                        qrcode = "${ticket.id}_$encryptedQRcode"
+                    )
+                )
 
             }
 
@@ -177,46 +176,45 @@ fun Route.getTickets(subDataSource: SubscriberDataSource) {
 }
 
 
-
 fun Route.validateTicket(subDataSource: SubscriberDataSource) {
-post("/validateTicket") {
+    post("/validateTicket") {
 
-    val request = call.receive<TicketQrCode>()
-    val areFieldsBlank = request.qrCode.isBlank()
-    if(areFieldsBlank) {
-        call.respondText("QrCode is empty", status = HttpStatusCode.BadRequest)
-    }
-    val ticketId = request.qrCode.substringBefore('_')
-    if(ticketId.length == request.qrCode.length){
-        call.respondText("QrCode doesn't include the ticket id",status = HttpStatusCode.BadRequest)
-    }
-    val sub = subDataSource.getSubscriberByTicketId(ticketId)
-    if (sub == null) {
-        call.respondText("Ticket is not valid (couldn't find sub)", status = HttpStatusCode.Conflict)
-    }
-
-
-    val cryptoService = CryptoService()
-    val ticket = sub!!.tickets.find{ it.id.toString() == ticketId }
-    if(ticket == null) {
-        call.respondText("Ticket is not valid (couldn't find ticket)",status = HttpStatusCode.Conflict)
-    }
-    cryptoService.iv = ticket!!.iv
-    val encryptedQrCode = request.qrCode.substringAfter('_')
-    val plainTextQrCode = cryptoService.decrypt(encryptedQrCode,ticket.id.toString(),sub.password)
-
-    if(ticket.qrcode == plainTextQrCode) {
-        if (ticket.checkValidity()) {
-            call.respond(HttpStatusCode.OK)
-        } else {
-            call.respondText("Ticket is not valid", status = HttpStatusCode.Conflict)
+        val request = call.receive<TicketQrCode>()
+        val areFieldsBlank = request.qrCode.isBlank()
+        if (areFieldsBlank) {
+            call.respondText("QrCode is empty", status = HttpStatusCode.BadRequest)
         }
-    } else {
-        call.respondText("Ticket is not valid(qrCode doesn't match)",status = HttpStatusCode.Conflict)
+        val ticketId = request.qrCode.substringBefore('_')
+        if (ticketId.length == request.qrCode.length) {
+            call.respondText("QrCode doesn't include the ticket id", status = HttpStatusCode.BadRequest)
+        }
+        val sub = subDataSource.getSubscriberByTicketId(ticketId)
+        if (sub == null) {
+            call.respondText("Ticket is not valid (couldn't find sub)", status = HttpStatusCode.Conflict)
+        }
+
+
+        val cryptoService = CryptoService()
+        val ticket = sub!!.tickets.find { it.id.toString() == ticketId }
+        if (ticket == null) {
+            call.respondText("Ticket is not valid (couldn't find ticket)", status = HttpStatusCode.Conflict)
+        }
+        cryptoService.iv = ticket!!.iv
+        val encryptedQrCode = request.qrCode.substringAfter('_')
+        val plainTextQrCode = cryptoService.decrypt(encryptedQrCode, ticket.id.toString(), sub.password)
+
+        if (ticket.qrcode == plainTextQrCode) {
+            if (ticket.checkValidity()) {
+                call.respond(HttpStatusCode.OK)
+            } else {
+                call.respondText("Ticket is not valid", status = HttpStatusCode.Conflict)
+            }
+        } else {
+            call.respondText("Ticket is not valid(qrCode doesn't match)", status = HttpStatusCode.Conflict)
+        }
+
+
     }
-
-
-}
 }
 
 
